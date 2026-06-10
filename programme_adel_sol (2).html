@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programme Adel — Street Lifting + Nutrition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f7f4; color: #1a1a1a; font-size: 14px; }
+
+  .top-bar { background: #1a1a1a; color: #fff; padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  .top-bar h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .top-bar span { font-size: 12px; color: #888; }
+  .logo-dot { width: 10px; height: 10px; background: #F4A261; border-radius: 50%; flex-shrink: 0; }
+
+  .nav { background: #fff; border-bottom: 1px solid #e8e6e0; padding: 0 16px; display: flex; gap: 0; overflow-x: auto; }
+  .nav-btn { padding: 12px 14px; font-size: 12px; font-weight: 500; border: none; background: none; cursor: pointer; color: #888; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s; }
+  .nav-btn:hover { color: #1a1a1a; }
+  .nav-btn.active { color: #F4A261; border-bottom-color: #F4A261; }
+  .nav-btn.current { color: #2e7d32; font-weight: 700; }
+  .nav-btn.current.active { color: #2e7d32; border-bottom-color: #2e7d32; }
+  .nav-btn.topset { color: #c0392b; font-weight: 700; }
+  .nav-btn.topset.active { color: #c0392b; border-bottom-color: #c0392b; }
+  .nav-btn.nutri-btn { color: #2e7d32; font-weight: 600; }
+  .nav-btn.nutri-btn.active { color: #2e7d32; border-bottom-color: #2e7d32; }
+
+  .page { display: none; padding: 24px; max-width: 960px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .week-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #1a1a1a; }
+  .week-sub { font-size: 13px; color: #888; margin-top: 4px; }
+  .week-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .bloc-badge { font-size: 11px; padding: 4px 12px; border-radius: 999px; background: #F4A261; color: #fff; font-weight: 600; letter-spacing: 0.04em; align-self: flex-start; }
+  .bloc-badge.current { background: #2e7d32; }
+  .bloc-badge.topset { background: #c0392b; }
+
+  .sessions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .session-card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; overflow: hidden; }
+  .session-card.dips { border-color: #c47a3a; }
+  .session-card.pull { border-color: #4a90d9; }
+  .session-card.lower-card { border-color: #7b68ee; }
+  .s-head { padding: 12px 16px; border-bottom: 1px solid #f0ede8; display: flex; align-items: center; justify-content: space-between; }
+  .s-day { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+  .s-name { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-top: 2px; }
+  .s-tag { font-size: 10px; padding: 3px 8px; border-radius: 999px; color: #fff; font-weight: 600; }
+  .s-tag.upper-a { background: #c47a3a; }
+  .s-tag.upper-b { background: #4a90d9; }
+  .s-tag.lower-t { background: #7b68ee; }
+
+  .s-body { padding: 12px 16px; }
+  .ex-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f3f0; }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; font-weight: 700; }
+  .ex-icon.dips-ic { background: #c47a3a; color: #fff; }
+  .ex-icon.pull-ic { background: #4a90d9; color: #fff; }
+  .ex-icon.aux-ic { background: #f0ede8; color: #888; }
+  .ex-icon.fin-ic { background: #2e7d32; color: #fff; font-size: 10px; }
+  .ex-info { flex: 1; }
+  .ex-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .ex-sets { font-size: 13px; font-weight: 700; margin-top: 2px; }
+  .ex-sets.orange { color: #c47a3a; }
+  .ex-sets.blue { color: #4a90d9; }
+  .ex-sets.green { color: #2e7d32; }
+  .ex-sets.purple { color: #7b68ee; }
+  .ex-sets.gray { color: #888; }
+  .ex-note { font-size: 11px; color: #aaa; margin-top: 2px; line-height: 1.4; }
+
+  .week-note { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 12px; line-height: 1.6; }
+  .week-note.normal { background: #fdf6ee; border: 1px solid #f0d9b5; color: #8B4513; }
+  .week-note.current-note { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+  .week-note.topset-note { background: #fdecea; border: 1px solid #f5c6c6; color: #c0392b; }
+
+  .lower-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+
+  .progress-bar-wrap { margin-bottom: 20px; }
+  .progress-bar-bg { height: 4px; background: #e8e6e0; border-radius: 2px; }
+  .progress-bar-fill { height: 4px; border-radius: 2px; }
+  .progress-label { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+
+  /* NUTRITION */
+  .n-card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+  .n-head { padding: 10px 16px; background: #f8f7f4; border-bottom: 1px solid #f0ede8; font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .macro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .macro-card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 12px 14px; text-align: center; }
+  .macro-label { font-size: 11px; color: #aaa; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .macro-val { font-size: 24px; font-weight: 700; color: #1a1a1a; }
+  .macro-sub { font-size: 11px; color: #888; margin-top: 2px; }
+  .rule-box { background: #fdf6ee; border: 1px solid #f0d9b5; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: #8B4513; line-height: 1.7; }
+  .warn-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; font-size: 12px; color: #7a5c00; line-height: 1.7; }
+  .ok-box { background: #f0f7f0; border: 1px solid #c8e6c9; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; font-size: 12px; color: #2e7d32; line-height: 1.7; }
+  table.nutri { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.nutri th { padding: 8px 14px; text-align: left; font-weight: 500; color: #888; font-size: 12px; border-bottom: 1px solid #f0ede8; background: #f8f7f4; }
+  table.nutri td { padding: 9px 14px; border-bottom: 1px solid #f5f3f0; color: #1a1a1a; vertical-align: top; }
+  table.nutri tr:last-child td { border-bottom: none; }
+  .t-orange { color: #F4A261; font-weight: 700; }
+  .t-muted { color: #888; font-size: 12px; }
+  .day-toggle { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .day-btn { padding: 6px 14px; font-size: 12px; border: 1px solid #e8e6e0; border-radius: 999px; background: #fff; cursor: pointer; color: #888; font-weight: 500; transition: all 0.15s; }
+  .day-btn.active { background: #F4A261; color: #fff; border-color: #F4A261; }
+  .day-plan { display: none; }
+  .day-plan.active { display: block; }
+  .checklist { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; font-size: 12px; color: #388e3c; }
+  .checklist div { display: flex; align-items: flex-start; gap: 8px; }
+
+  @media (max-width: 600px) {
+    .sessions-grid, .lower-grid { grid-template-columns: 1fr; }
+    .page { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo-dot"></div>
+  <div>
+    <h1>Programme Adel</h1>
+    <span>Street Lifting 6 semaines · Upper / Lower / Upper · 88kg → 82kg</span>
+  </div>
+</div>
+
+<div class="nav" id="nav"></div>
+<div id="pages"></div>
+
+<script>
+const PHASES = ['S1-S2 Réadaptation','S3-S4 Intensité','S5 Pics','S6 Top Sets'];
+
+const WEEKS = [
+  {
+    num: 1,
+    phase: 'Réadaptation post-vacances — léger, technique',
+    isCurrent: false,
+    isTopSet: false,
+    upperA: {
+      dips:   { sets:'4×4', charge:'65 kg', color:'orange' },
+      pull:   { sets:'4×6', charge:'22 kg', color:'blue' },
+      ohp:    { sets:'3×10', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'4×4', charge:'30 kg', color:'blue' },
+      dips:   { sets:'4×6', charge:'50 kg', color:'orange' },
+      bench:  { sets:'3×10', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  },
+  {
+    num: 2,
+    phase: 'Réadaptation — tu es ici 📍',
+    isCurrent: true,
+    isTopSet: false,
+    upperA: {
+      dips:   { sets:'4×4', charge:'67,5 kg', color:'orange' },
+      pull:   { sets:'4×6', charge:'22 kg', color:'blue' },
+      ohp:    { sets:'3×10', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'4×4', charge:'32,5 kg', color:'blue' },
+      dips:   { sets:'4×6', charge:'50 kg', color:'orange' },
+      bench:  { sets:'3×10', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  },
+  {
+    num: 3,
+    phase: 'Montée en intensité',
+    isCurrent: false,
+    isTopSet: false,
+    upperA: {
+      dips:   { sets:'4×3', charge:'70 kg', color:'orange' },
+      pull:   { sets:'4×5', charge:'25 kg', color:'blue' },
+      ohp:    { sets:'3×8', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'4×3', charge:'35 kg', color:'blue' },
+      dips:   { sets:'4×5', charge:'52,5 kg', color:'orange' },
+      bench:  { sets:'3×8', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  },
+  {
+    num: 4,
+    phase: 'Montée en intensité — continuation',
+    isCurrent: false,
+    isTopSet: false,
+    upperA: {
+      dips:   { sets:'4×3', charge:'72 kg', color:'orange' },
+      pull:   { sets:'4×5', charge:'25 kg', color:'blue' },
+      ohp:    { sets:'3×8', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'4×3', charge:'35 kg', color:'blue' },
+      dips:   { sets:'4×5', charge:'55 kg', color:'orange' },
+      bench:  { sets:'3×8', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  },
+  {
+    num: 5,
+    phase: 'Pics d\'intensité — très lourd, peu de reps',
+    isCurrent: false,
+    isTopSet: false,
+    upperA: {
+      dips:   { sets:'3×2', charge:'75 kg', color:'orange' },
+      pull:   { sets:'3×4', charge:'27,5 kg', color:'blue' },
+      ohp:    { sets:'3×6', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'3×2', charge:'37,5 kg', color:'blue' },
+      dips:   { sets:'3×4', charge:'57,5 kg', color:'orange' },
+      bench:  { sets:'3×6', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  },
+  {
+    num: 6,
+    phase: 'TOP SETS 🔥 — Nouveaux maxs',
+    isCurrent: false,
+    isTopSet: true,
+    upperA: {
+      dips:   { sets:'Top set max', charge:'77,5 kg 🔥', color:'orange' },
+      pull:   { sets:'Top set max', charge:'30 kg 🔥', color:'blue' },
+      ohp:    { sets:'3×5', charge:'', color:'gray' },
+      finish: { text:'3×PDC max (-2 reps avant échec)', color:'green' }
+    },
+    upperB: {
+      pull:   { sets:'Top set max', charge:'40 kg 🔥', color:'blue' },
+      dips:   { sets:'Top set max', charge:'60 kg 🔥', color:'orange' },
+      bench:  { sets:'3×5', charge:'', color:'gray' },
+      finish: { text:'3×PDC tractions ×8-10', color:'green' }
+    }
+  }
+];
+
+const LOWER = [
+  { name:'Leg press', sets:'4×10-12', note:'Charge progressive chaque semaine', color:'purple' },
+  { name:'Leg curl assis', sets:'4×12', note:'', color:'purple' },
+  { name:'Hip thrust', sets:'4×10', note:'', color:'purple' },
+  { name:'Mollets presse', sets:'3×15', note:'', color:'gray' },
+  { name:'Planche', sets:'3×45 sec', note:'', color:'gray' },
+  { name:'Ab wheel', sets:'3×10', note:'', color:'gray' },
+];
+
+const nav = document.getElementById('nav');
+const pages = document.getElementById('pages');
+
+WEEKS.forEach((w, i) => {
+  const btn = document.createElement('button');
+  let cls = 'nav-btn';
+  if (w.isCurrent) cls += ' current';
+  else if (w.isTopSet) cls += ' topset';
+  if (i === 1) cls += ' active'; // start on S2
+  btn.className = cls;
+  btn.textContent = `S${w.num}${w.isCurrent ? ' 📍' : w.isTopSet ? ' 🔥' : ''}`;
+  btn.onclick = () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + i).classList.add('active');
+  };
+  nav.appendChild(btn);
+});
+
+window.showDay = function(id, e) {
+  document.querySelectorAll('.day-plan').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('day-' + id).classList.add('active');
+  e.target.classList.add('active');
+};
+
+const nutriBtn = document.createElement('button');
+nutriBtn.className = 'nav-btn nutri-btn';
+nutriBtn.textContent = '🥗 Nutrition';
+nutriBtn.onclick = () => {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  nutriBtn.classList.add('active');
+  document.getElementById('page-nutri').classList.add('active');
+};
+nav.appendChild(nutriBtn);
+
+function exRow(iconClass, name, sets, charge, setsColor, note) {
+  return `
+    <div class="ex-row">
+      <div class="ex-icon ${iconClass}">${iconClass==='dips-ic'?'D':iconClass==='pull-ic'?'T':iconClass==='fin-ic'?'+':'◆'}</div>
+      <div class="ex-info">
+        <div class="ex-name">${name}${charge ? ' <span style="font-weight:400;color:#aaa;font-size:12px">· ' + charge + '</span>' : ''}</div>
+        <div class="ex-sets ${setsColor}">${sets}</div>
+        ${note ? `<div class="ex-note">${note}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+WEEKS.forEach((w, i) => {
+  const page = document.createElement('div');
+  page.id = 'page-' + i;
+  page.className = 'page' + (i === 1 ? ' active' : '');
+
+  const pct = Math.round((w.num / 6) * 100);
+  const barColor = w.isTopSet ? '#c0392b' : w.isCurrent ? '#2e7d32' : '#F4A261';
+  const noteClass = w.isCurrent ? 'current-note' : w.isTopSet ? 'topset-note' : 'normal';
+  const badgeClass = w.isCurrent ? 'current' : w.isTopSet ? 'topset' : '';
+
+  const reminders = w.isTopSet
+    ? '🏆 Semaine de test. Pas d\'échec technique. Repos 4 min entre chaque top set. C\'est la récompense des 5 semaines de travail.'
+    : w.isCurrent
+    ? '📍 Tu es ici. Semaine de réadaptation — priorité à la technique, pas à l\'ego. Les charges augmentent progressivement à partir de la S3.'
+    : w.num <= 2
+    ? 'Semaine de réadaptation. Léger, amplitude complète, focus technique.'
+    : w.num <= 4
+    ? 'Montée en intensité. Repos 3-4 min sur les séries lourdes. Stop 1-2 reps avant l\'échec sur le volume.'
+    : 'Semaine de pics. Très lourd, peu de reps. Repos 4 min. Technique irréprochable.';
+
+  let html = `
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progression — semaine ${w.num}/6</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+    </div>
+    <div class="week-header">
+      <div><div class="week-title">Semaine ${w.num}${w.isTopSet ? ' 🔥' : w.isCurrent ? ' 📍' : ''}</div><div class="week-sub">${w.phase}</div></div>
+      <span class="bloc-badge ${badgeClass}">${w.isTopSet ? 'TOP SETS' : w.isCurrent ? 'EN COURS' : 'Semaine ' + w.num}</span>
+    </div>
+    <div class="week-note ${noteClass}">${reminders}</div>
+    <div class="sessions-grid">
+  `;
+
+  // UPPER A
+  html += `
+    <div class="session-card dips">
+      <div class="s-head">
+        <div><div class="s-day">Lundi</div><div class="s-name">Upper A — Dips principal</div></div>
+        <span class="s-tag upper-a">UPPER A</span>
+      </div>
+      <div class="s-body">
+        ${exRow('dips-ic', 'Dips lestés', w.upperA.dips.sets, w.upperA.dips.charge, w.upperA.dips.color, 'Mouvement principal')}
+        ${exRow('pull-ic', 'Tractions', w.upperA.pull.sets, w.upperA.pull.charge, w.upperA.pull.color, 'Accessoire')}
+        ${exRow('aux-ic', 'OHP', w.upperA.ohp.sets, '', w.upperA.ohp.color, '')}
+        ${exRow('fin-ic', 'Finisher dips', w.upperA.finish.text, '', w.upperA.finish.color, '-2 reps avant échec')}
+      </div>
+    </div>
+  `;
+
+  // LOWER
+  html += `
+    <div class="session-card lower-card">
+      <div class="s-head">
+        <div><div class="s-day">Mercredi</div><div class="s-name">Lower — Safe genou</div></div>
+        <span class="s-tag lower-t">LOWER</span>
+      </div>
+      <div class="s-body">
+        ${LOWER.map((ex, idx) => `
+          <div class="ex-row">
+            <div class="ex-icon aux-ic">${idx+1}</div>
+            <div class="ex-info">
+              <div class="ex-name">${ex.name}</div>
+              <div class="ex-sets ${ex.color}">${ex.sets}${w.num > 1 && ex.name === 'Leg press' ? ' — +charge vs S' + (w.num-1) : ''}</div>
+              ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  // UPPER B
+  html += `
+    <div class="session-card pull">
+      <div class="s-head">
+        <div><div class="s-day">Vendredi</div><div class="s-name">Upper B — Tractions principal</div></div>
+        <span class="s-tag upper-b">UPPER B</span>
+      </div>
+      <div class="s-body">
+        ${exRow('pull-ic', 'Tractions', w.upperB.pull.sets, w.upperB.pull.charge, w.upperB.pull.color, 'Mouvement principal')}
+        ${exRow('dips-ic', 'Dips volume', w.upperB.dips.sets, w.upperB.dips.charge, w.upperB.dips.color, 'Accessoire')}
+        ${exRow('aux-ic', 'Bench press', w.upperB.bench.sets, '', w.upperB.bench.color, '')}
+        ${exRow('fin-ic', 'Finisher tractions', w.upperB.finish.text, '', w.upperB.finish.color, 'PDC')}
+      </div>
+    </div>
+  `;
+
+  html += `</div>`;
+
+  // Rappels fixes
+  html += `
+    <div class="week-note normal" style="margin-top:0">
+      <strong>Rappels :</strong> Repos 3-4 min sur les séries lourdes · Repos 2 min sur le volume · Amplitude complète sur chaque rep · Stop 1-2 reps avant l'échec sur le volume
+    </div>
+  `;
+
+  page.innerHTML = html;
+  pages.appendChild(page);
+});
+
+// =====================
+// PAGE NUTRITION ADEL
+// =====================
+const nutriPage = document.createElement('div');
+nutriPage.id = 'page-nutri';
+nutriPage.className = 'page';
+nutriPage.innerHTML = `
+<div style="max-width:860px">
+
+  <div class="week-header">
+    <div>
+      <div class="week-title">Nutrition — Adel</div>
+      <div class="week-sub">88kg → 82kg · 1m83 · Street Lifting + Volley 5 activités/semaine</div>
+    </div>
+    <span class="bloc-badge" style="background:#2e7d32">Sèche + Force</span>
+  </div>
+
+  <div class="macro-grid">
+    <div class="macro-card"><div class="macro-label">Calories/jour</div><div class="macro-val">2 400</div><div class="macro-sub">~–350 kcal déficit</div></div>
+    <div class="macro-card"><div class="macro-label">Protéines</div><div class="macro-val" style="color:#F4A261">185g</div><div class="macro-sub">2.1g/kg · non négociable</div></div>
+    <div class="macro-card"><div class="macro-label">Glucides</div><div class="macro-val" style="color:#4a90d9">240g</div><div class="macro-sub">+30g jours double SL+volley</div></div>
+    <div class="macro-card"><div class="macro-label">Lipides</div><div class="macro-val" style="color:#7b68ee">85g</div><div class="macro-sub">min 1g/kg</div></div>
+    <div class="macro-card"><div class="macro-label">Perte cible</div><div class="macro-val" style="color:#2e7d32">400g</div><div class="macro-sub">par semaine · 6kg en ~15 sem</div></div>
+    <div class="macro-card"><div class="macro-label">Eau</div><div class="macro-val">3.5L</div><div class="macro-sub">5 activités/semaine</div></div>
+  </div>
+
+  <div class="rule-box">
+    <strong>Règle d'or :</strong> Tu fais 5 activités par semaine (3 SL + 2 entraînements volley + match). Le déficit doit rester modéré — trop serrer les calories va faire stagner ta force ET ta récup volley. 185g de protéines chaque jour sans exception, c'est le seul chiffre à vraiment surveiller.
+  </div>
+
+  <div class="n-card">
+    <div class="n-head">🔍 Analyse de ton alimentation actuelle</div>
+    <div style="padding:14px 16px">
+      <div class="warn-box">
+        <strong>⚠️ Monster le matin :</strong> 160 kcal de sucre rapide, 160mg caféine. Ça marche pour l'énergie avant séance SL, mais ça spike l'insuline à jeun et n'apporte aucune protéine. À conserver uniquement les jours de street lifting. Pas les jours repos ou volley seul. Max 1/jour.
+      </div>
+      <div class="warn-box">
+        <strong>⚠️ Pas de vrai repas le soir :</strong> Finir ta journée avec pain + tranche de viande ou omelette seule, c'est trop peu — surtout après le volley du soir. Le soir est le moment clé pour la récup musculaire nocturne. Il faut muscler ce repas.
+      </div>
+      <div class="ok-box">
+        <strong>✅ Smoothie avec whey + créatine + collagène :</strong> Très bon réflexe. C'est un repas liquide efficace. Ajoute 200g de skyr dedans pour +20g de protéines sans changer le goût.
+      </div>
+      <div class="ok-box">
+        <strong>✅ Gros repas post-SL (riz 120g + poulet 250g) :</strong> Bonne fenêtre anabolique post-séance. C'est ton repas le plus solide — le problème c'est que c'est potentiellement le seul. On rééquilibre sur la journée sans tout changer.
+      </div>
+    </div>
+  </div>
+
+  <div class="n-card">
+    <div class="n-head">📋 Plan alimentaire — choisir le type de journée</div>
+    <div style="padding:14px 16px 0">
+      <div class="day-toggle">
+        <button class="day-btn active" onclick="showDay('sl-volley', event)">Lundi / Vendredi — SL + volley</button>
+        <button class="day-btn" onclick="showDay('sl-seul', event)">Mercredi — SL seul</button>
+        <button class="day-btn" onclick="showDay('volley-seul', event)">Jeudi — volley seul</button>
+        <button class="day-btn" onclick="showDay('match', event)">Dimanche — match</button>
+        <button class="day-btn" onclick="showDay('repos', event)">Repos complet</button>
+      </div>
+    </div>
+
+    <div id="day-sl-volley" class="day-plan active" style="padding:0 16px 14px">
+      <div style="font-size:11px;color:#aaa;margin-bottom:10px;font-style:italic">Journée la plus chargée — 2 activités. Ne pas sous-manger ce jour.</div>
+      <table class="nutri">
+        <tr><th style="width:130px">Moment</th><th>Ce que tu manges</th><th style="width:80px;text-align:right">Protéines</th><th style="width:70px;text-align:right">Kcal</th></tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Réveil</td>
+          <td>Pain grillé 2 tranches + Kiri 2 portions + Monster<br><span class="t-muted">Ton habitude — ok uniquement les jours SL</span></td>
+          <td class="t-orange" style="text-align:right">8g</td>
+          <td style="text-align:right;color:#888">~350</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Post-SL</td>
+          <td>Riz 120g cuit + Poulet 250g + sauce + tomates cerises<br><span class="t-muted">Ton repas habituel — maintenir</span></td>
+          <td class="t-orange" style="text-align:right">58g</td>
+          <td style="text-align:right;color:#888">~650</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Smoothie ~15h</td>
+          <td>Fruits rouges 150g + skyr 200g + whey 30g + créatine 5g + collagène + eau<br><span class="t-muted">Ajoute le skyr si pas encore le cas</span></td>
+          <td class="t-orange" style="text-align:right">52g</td>
+          <td style="text-align:right;color:#888">~380</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#4a90d9">Avant volley ~17h30</td>
+          <td>Riz 100g ou patate douce + 100g poulet ou 2 œufs<br><span class="t-muted">Léger — carburant sans être lourd</span></td>
+          <td class="t-orange" style="text-align:right">25g</td>
+          <td style="text-align:right;color:#888">~320</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#4a90d9">Post-volley ~21h</td>
+          <td>Omelette 4 œufs + fromage blanc 200g + 2 tranches pain<br><span class="t-muted">Muscler ce repas — pas juste une tranche de pain</span></td>
+          <td class="t-orange" style="text-align:right">52g</td>
+          <td style="text-align:right;color:#888">~480</td>
+        </tr>
+        <tr style="background:#fdf6ee;font-weight:600">
+          <td>TOTAL</td><td></td>
+          <td class="t-orange" style="text-align:right">~195g</td>
+          <td style="text-align:right;color:#888">~2 180</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="day-sl-seul" class="day-plan" style="padding:0 16px 14px">
+      <div style="font-size:11px;color:#aaa;margin-bottom:10px;font-style:italic">Mercredi — SL uniquement, pas de volley.</div>
+      <table class="nutri">
+        <tr><th style="width:130px">Moment</th><th>Ce que tu manges</th><th style="width:80px;text-align:right">Protéines</th><th style="width:70px;text-align:right">Kcal</th></tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Réveil</td>
+          <td>Pain grillé + Kiri + Monster</td>
+          <td class="t-orange" style="text-align:right">8g</td>
+          <td style="text-align:right;color:#888">~300</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Post-SL</td>
+          <td>Riz 130g cuit + Poulet 250g + sauce + tomates</td>
+          <td class="t-orange" style="text-align:right">58g</td>
+          <td style="text-align:right;color:#888">~650</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#F4A261">Smoothie ~15h</td>
+          <td>Fruits rouges + skyr 200g + whey 30g + créatine + collagène</td>
+          <td class="t-orange" style="text-align:right">52g</td>
+          <td style="text-align:right;color:#888">~380</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Soir ~20h</td>
+          <td>Bœuf haché 200g ou steak + 2 œufs + tomates + fromage blanc 200g<br><span class="t-muted">Repas soir musclé</span></td>
+          <td class="t-orange" style="text-align:right">72g</td>
+          <td style="text-align:right;color:#888">~580</td>
+        </tr>
+        <tr style="background:#fdf6ee;font-weight:600">
+          <td>TOTAL</td><td></td>
+          <td class="t-orange" style="text-align:right">~190g</td>
+          <td style="text-align:right;color:#888">~1 910</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="day-volley-seul" class="day-plan" style="padding:0 16px 14px">
+      <div style="font-size:11px;color:#aaa;margin-bottom:10px;font-style:italic">Jeudi — pas de SL, volley le soir. Réduire légèrement les glucides.</div>
+      <table class="nutri">
+        <tr><th style="width:130px">Moment</th><th>Ce que tu manges</th><th style="width:80px;text-align:right">Protéines</th><th style="width:70px;text-align:right">Kcal</th></tr>
+        <tr>
+          <td style="font-weight:600">Matin</td>
+          <td>4 œufs brouillés + fromage blanc 200g + 1 tranche pain<br><span class="t-muted">Pas de Monster — pas de séance SL</span></td>
+          <td class="t-orange" style="text-align:right">52g</td>
+          <td style="text-align:right;color:#888">~420</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Déjeuner ~13h</td>
+          <td>Poulet 200g + riz 80g + tomates + filet huile olive</td>
+          <td class="t-orange" style="text-align:right">48g</td>
+          <td style="text-align:right;color:#888">~480</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#4a90d9">Smoothie ~17h</td>
+          <td>Fruits rouges + skyr 150g + whey 30g + créatine + collagène</td>
+          <td class="t-orange" style="text-align:right">45g</td>
+          <td style="text-align:right;color:#888">~330</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:#4a90d9">Post-volley</td>
+          <td>Omelette 4 œufs + fromage blanc 200g + 1 tranche pain</td>
+          <td class="t-orange" style="text-align:right">48g</td>
+          <td style="text-align:right;color:#888">~420</td>
+        </tr>
+        <tr style="background:#fdf6ee;font-weight:600">
+          <td>TOTAL</td><td></td>
+          <td class="t-orange" style="text-align:right">~193g</td>
+          <td style="text-align:right;color:#888">~1 650</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="day-match" class="day-plan" style="padding:0 16px 14px">
+      <div style="font-size:11px;color:#aaa;margin-bottom:10px;font-style:italic">Dimanche — match officiel. Plus de glucides, récup prioritaire.</div>
+      <table class="nutri">
+        <tr><th style="width:130px">Moment</th><th>Ce que tu manges</th><th style="width:80px;text-align:right">Protéines</th><th style="width:70px;text-align:right">Kcal</th></tr>
+        <tr>
+          <td style="font-weight:600">Matin ~8h</td>
+          <td>Riz 100g ou pâtes + poulet 150g + fromage blanc 200g<br><span class="t-muted">Charge glycogène avant match</span></td>
+          <td class="t-orange" style="text-align:right">55g</td>
+          <td style="text-align:right;color:#888">~550</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">2h avant match</td>
+          <td>Banane + skyr 200g<br><span class="t-muted">Énergie rapide sans être lourd</span></td>
+          <td class="t-orange" style="text-align:right">18g</td>
+          <td style="text-align:right;color:#888">~250</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Post-match</td>
+          <td>Riz 150g + bœuf ou poulet 250g + tomates + dessert ok<br><span class="t-muted">Repas de récup — autoriser le dessert ici</span></td>
+          <td class="t-orange" style="text-align:right">60g</td>
+          <td style="text-align:right;color:#888">~700</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Smoothie</td>
+          <td>Fruits rouges + skyr + whey + créatine + collagène</td>
+          <td class="t-orange" style="text-align:right">52g</td>
+          <td style="text-align:right;color:#888">~380</td>
+        </tr>
+        <tr style="background:#fdf6ee;font-weight:600">
+          <td>TOTAL</td><td></td>
+          <td class="t-orange" style="text-align:right">~185g</td>
+          <td style="text-align:right;color:#888">~1 880</td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="day-repos" class="day-plan" style="padding:0 16px 14px">
+      <div style="font-size:11px;color:#aaa;margin-bottom:10px;font-style:italic">Jour sans activité — réduire glucides, maintenir protéines.</div>
+      <table class="nutri">
+        <tr><th style="width:130px">Moment</th><th>Ce que tu manges</th><th style="width:80px;text-align:right">Protéines</th><th style="width:70px;text-align:right">Kcal</th></tr>
+        <tr>
+          <td style="font-weight:600">Matin</td>
+          <td>4 œufs + fromage blanc 200g + café<br><span class="t-muted">Pas de Monster — pas de séance</span></td>
+          <td class="t-orange" style="text-align:right">48g</td>
+          <td style="text-align:right;color:#888">~380</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Déjeuner</td>
+          <td>Poulet 200g + tomates + maïs + fromage râpé + 1 tranche pain</td>
+          <td class="t-orange" style="text-align:right">50g</td>
+          <td style="text-align:right;color:#888">~480</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Smoothie ~16h</td>
+          <td>Fruits rouges + skyr 150g + whey 20g + créatine + collagène<br><span class="t-muted">Créatine 5g même les jours de repos — sans exception</span></td>
+          <td class="t-orange" style="text-align:right">35g</td>
+          <td style="text-align:right;color:#888">~280</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600">Soir</td>
+          <td>Omelette 4 œufs + fromage blanc 200g + 1 tranche pain</td>
+          <td class="t-orange" style="text-align:right">48g</td>
+          <td style="text-align:right;color:#888">~380</td>
+        </tr>
+        <tr style="background:#fdf6ee;font-weight:600">
+          <td>TOTAL</td><td></td>
+          <td class="t-orange" style="text-align:right">~181g</td>
+          <td style="text-align:right;color:#888">~1 520</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="n-card">
+    <div class="n-head">💊 Suppléments — tu as déjà les bons</div>
+    <table class="nutri">
+      <tr><th>Supplément</th><th>Dose</th><th>Quand</th><th>Statut</th></tr>
+      <tr><td style="font-weight:600">Créatine monohydrate</td><td class="t-orange">5g/j</td><td>Dans le smoothie · tous les jours</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">✓ déjà utilisée</span></td></tr>
+      <tr><td style="font-weight:600">Whey protéine</td><td class="t-orange">30g/j</td><td>Dans le smoothie</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">✓ déjà utilisée</span></td></tr>
+      <tr><td style="font-weight:600">Collagène</td><td class="t-orange">10-15g/j</td><td>Dans le smoothie</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">✓ déjà utilisée</span></td></tr>
+      <tr><td style="font-weight:600">Vitamine D3</td><td class="t-orange">2000 UI/j</td><td>Matin avec le pain + Kiri</td><td><span style="background:#fff8e1;color:#7a5c00;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">→ à ajouter</span></td></tr>
+      <tr><td style="font-weight:600">Magnésium bisglycinate</td><td class="t-orange">300mg/j</td><td>Le soir avant coucher</td><td><span style="background:#fff8e1;color:#7a5c00;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">→ à ajouter</span></td></tr>
+    </table>
+  </div>
+
+  <div class="ok-box">
+    <div style="font-size:13px;font-weight:600;color:#2e7d32;margin-bottom:10px">✅ Checklist hebdomadaire</div>
+    <div class="checklist">
+      <div><span>✓</span>185g+ protéines chaque jour</div>
+      <div><span>✓</span>Créatine 5g tous les jours (même repos)</div>
+      <div><span>✓</span>Monster uniquement jours de SL · max 1/j</div>
+      <div><span>✓</span>Repas post-volley musclé (pas juste pain)</div>
+      <div><span>✓</span>3.5L d'eau minimum</div>
+      <div><span>✓</span>Se peser même jour chaque semaine à jeun</div>
+      <div><span>✓</span>7-8h de sommeil — 5 activités/semaine</div>
+      <div><span>✓</span>Photo de suivi toutes les 2 semaines</div>
+    </div>
+    </div>
+
+  <!-- LISTE DE COURSES -->
+  <div class="n-card" style="margin-top:14px">
+    <div class="n-head">🛒 Liste de courses — pour la semaine complète</div>
+    <div style="padding:10px 16px 4px;font-size:12px;color:#888">Quantités calculées pour 7 jours avec 3 séances SL + 2 volley + 1 match. Cocher au fur et à mesure.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;padding:8px 16px 16px">
+
+      <!-- Protéines -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#c47a3a;margin:12px 0 8px">🍗 Protéines</div>
+        ${[
+          ['Filets de poulet', '1,8 kg', ''],
+          ['Bœuf haché 5% ou steak', '600g', 'pour 2-3 soirs'],
+          ['Œufs', '2 douzaines', '~18-20 œufs/semaine'],
+          ['Fromage blanc 0%', '6 × 500g', 'ou équivalent'],
+          ['Skyr nature', '4 × 200g', 'pour les smoothies'],
+          ['Kiri (portions)', '1 boîte', 'matin avec pain'],
+        ].map(([n,q,note]) => `
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3f0">
+            <div style="width:16px;height:16px;border:1.5px solid #ddd;border-radius:3px;flex-shrink:0;margin-top:1px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">${n}</div>
+              <div style="font-size:12px;color:#F4A261;font-weight:700">${q} ${note ? '· <span style="color:#aaa;font-weight:400">'+note+'</span>' : ''}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Glucides -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#4a90d9;margin:12px 0 8px">🍚 Glucides</div>
+        ${[
+          ['Riz basmati ou long grain', '1,5 kg', 'base quotidienne'],
+          ['Patate douce', '1 kg', '3-4 patates'],
+          ['Pain de mie complet', '1-2 paquets', 'matin + soir'],
+          ['Bananes', '1 régime (6-7)', 'avant match / collation'],
+          ['Maïs en boîte', '2 boîtes', 'accompagnement'],
+        ].map(([n,q,note]) => `
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3f0">
+            <div style="width:16px;height:16px;border:1.5px solid #ddd;border-radius:3px;flex-shrink:0;margin-top:1px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">${n}</div>
+              <div style="font-size:12px;color:#4a90d9;font-weight:700">${q} ${note ? '· <span style="color:#aaa;font-weight:400">'+note+'</span>' : ''}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Fruits & smoothie -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7b68ee;margin:12px 0 8px">🫐 Smoothie & fruits</div>
+        ${[
+          ['Fruits rouges surgelés', '1 kg', 'framboise, myrtille, fraise'],
+          ['Tomates cerises ou rondes', '1 kg', 'accompagnement quotidien'],
+          ['Citron', '2-3', 'pour les sauces'],
+        ].map(([n,q,note]) => `
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3f0">
+            <div style="width:16px;height:16px;border:1.5px solid #ddd;border-radius:3px;flex-shrink:0;margin-top:1px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">${n}</div>
+              <div style="font-size:12px;color:#7b68ee;font-weight:700">${q} ${note ? '· <span style="color:#aaa;font-weight:400">'+note+'</span>' : ''}</div>
+            </div>
+          </div>`).join('')}
+
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:12px 0 8px">🧂 Condiments & divers</div>
+        ${[
+          ['Huile d\'olive', '1 bouteille', ''],
+          ['Sauce soja ou sauce légère', '1 bouteille', 'pour le poulet'],
+          ['Fromage râpé allégé', '1 sachet', 'déjeuner'],
+          ['Bouillon de poulet', '1 boîte', 'pour cuisson riz'],
+          ['Monster Energy', '3 canettes', 'jours SL uniquement'],
+        ].map(([n,q,note]) => `
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3f0">
+            <div style="width:16px;height:16px;border:1.5px solid #ddd;border-radius:3px;flex-shrink:0;margin-top:1px"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a">${n}</div>
+              <div style="font-size:12px;color:#888;font-weight:700">${q} ${note ? '· <span style="color:#aaa;font-weight:400">'+note+'</span>' : ''}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+    </div>
+
+    <div style="margin:0 16px 16px;background:#fdf6ee;border:1px solid #f0d9b5;border-radius:10px;padding:10px 14px;font-size:12px;color:#8B4513;line-height:1.7">
+      <strong>Tip prep :</strong> Cuire 1 kg de poulet + 500g de riz le dimanche soir — ça couvre les repas post-SL de lundi et mercredi sans avoir à cuisiner après la séance. Congeler le reste en portions.
+    </div>
+  </div>
+
+</div>
+
+
+`;
+pages.appendChild(nutriPage);
+</script>
+</body>
+</html>
